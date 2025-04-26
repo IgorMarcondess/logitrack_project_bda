@@ -1,13 +1,16 @@
 DROP TABLE Clientes CASCADE CONSTRAINTS;
 DROP TABLE Entregas CASCADE CONSTRAINTS;
-DROP TABLE Historico_entrega CASCADE CONSTRAINTS;
+DROP TABLE Historico_entregas CASCADE CONSTRAINTS;
 DROP TABLE Motoristas CASCADE CONSTRAINTS;
 DROP TABLE Status_entregas CASCADE CONSTRAINTS;
 DROP TABLE Veiculos CASCADE CONSTRAINTS;
 DROP SEQUENCE seq_entregas;
 DROP PROCEDURE registrar_entrega;
+DROP PROCEDURE atribuir_veiculo_entrega;
+DROP PROCEDURE verificar_status;
 DROP FUNCTION verificar_cliente;
-DROP FUNCTION atribuir_veiculo_entrega
+DROP FUNCTION atribuir_veiculo_entrega;
+DROP TRIGGER Historico_entregas;
 
 
 CREATE TABLE Clientes ( 
@@ -36,10 +39,11 @@ CREATE TABLE Veiculos(
      ano_vei  NUMBER (4)    CONSTRAINT veiculos_ano_nn  NOT NULL
     ) 
     
-CREATE TABLE Historico_entrega( 
-    id_status           NUMBER(4)       CONSTRAINT hist_ent_id_pk_nn REFERENCES Status_entregas,
+CREATE TABLE Historico_entregas( 
+    id_status           NUMBER(4)       CONSTRAINT hist_ent_id_pk_nn NOT NULL,
     data_status         DATE            CONSTRAINT data_status_nn NOT NULL, 
-    status              VARCHAR2 (35)   CONSTRAINT status_fk NOT NULL
+    status              VARCHAR2 (35)   CONSTRAINT status_fk NOT NULL,
+    operacao            VARCHAR  (35) NOT NULL
     ) 
 
 CREATE TABLE Motoristas ( 
@@ -51,18 +55,21 @@ CREATE TABLE Motoristas (
 
 CREATE SEQUENCE seq_entregas START WITH 1 INCREMENT BY 1; --CRIANDO UMA SEQUENCIA PARA INCREMENTAR OS IDs
 
+-- CLIENTES
 INSERT INTO Clientes values (1, 'Dom Julio', '12345678900000', 'alimenticio');
 
+-- VEÍCULOS
 INSERT INTO Veiculos values (1, 'Tipo A', 2020);
 INSERT INTO Veiculos values (2, 'Tipo B', 2025);
 
-INSERT INTO Entregas values (1, 'Entrega Rápida', null, 1);
-INSERT INTO Entregas values (2, 'Entrega Rápida', null, 1);
-
-INSERT INTO Status_entregas values (1, 'Entrega dentro do prazo');
+-- INSERTS E UPDATES PARA TESTAR A TRIGGERS DE AUDITORIA DE ENTREGAS
+INSERT INTO Status_entregas values (4, 'Entrega dentro do prazo');
+UPDATE Status_entregas SET status = 'Entrega Atrasada' WHERE id_ent = 4;
 INSERT INTO Status_entregas values (2, 'Entrega Atrasada');
 
-
+-- SELECTS NECESSÁRIOS PARRA VISUALIZAÇÃO
 select * from Clientes;
 select * from Entregas;
-select * from Status_entregas
+select * from Status_entregas;
+select * from Historico_entregas
+

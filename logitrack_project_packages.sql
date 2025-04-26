@@ -1,6 +1,6 @@
 set serveroutput on
 
--- FUNCTIONS
+----> FUNCTIONS
 
 CREATE OR REPLACE FUNCTION verificar_cliente(v_id_cliente NUMBER)
     RETURN BOOLEAN IS
@@ -11,12 +11,14 @@ BEGIN
     WHERE id_clie = v_id_cliente;
     
     IF v_count = 0 THEN
-        DBMS_OUTPUT.PUT_LINE('Erro: Cliente n„o existe');
+        DBMS_OUTPUT.PUT_LINE('Erro: Cliente n√£o existe');
         RETURN FALSE;
     ELSE
         RETURN TRUE;
     END IF;
 END;  
+
+
 
 CREATE OR REPLACE FUNCTION verificar_entrega(v_id_entrega NUMBER)
     RETURN BOOLEAN IS 
@@ -38,11 +40,11 @@ BEGIN
             RETURN FALSE;
         END IF;
     ELSE
-        DBMS_OUTPUT.PUT_LINE('Erro: ENTREGA N√O EXISTE'); 
+        DBMS_OUTPUT.PUT_LINE('Erro: ENTREGA N√ÉO EXISTE'); 
     END IF;
 END;
 
--- PROCEDURES
+----> PROCEDURES
 
 CREATE OR REPLACE PROCEDURE registrar_entrega (
     v_id_clie NUMBER,
@@ -52,11 +54,11 @@ CREATE OR REPLACE PROCEDURE registrar_entrega (
 BEGIN
     
     IF NOT verificar_cliente(v_id_clie) THEN
-        DBMS_OUTPUT.PUT_LINE('Erro: CLIENTE N√O EXISTE'); 
+        DBMS_OUTPUT.PUT_LINE('Erro: CLIENTE N√ÉO EXISTE'); 
     ELSE
         INSERT INTO Entregas (id_ent, tipo, veiculo, fk_cliente) VALUES (seq_entregas.NEXTVAL, v_tipo_entrega, null, v_id_clie);
-        INSERT INTO Status_entregas (id_ent, status) VALUES (seq_entregas.CURVAL + 1, null);
-                DBMS_OUTPUT.PUT_LINE('ENTREGA REGISTRADA COM SUCESSO!');
+        INSERT INTO Status_entregas (id_ent, status) VALUES (seq_entregas.CURRVAL, 'Entrega dentro do prazo');
+        DBMS_OUTPUT.PUT_LINE('ENTREGA REGISTRADA COM SUCESSO!');
                 
         COMMIT;
     END IF;
@@ -77,40 +79,74 @@ BEGIN
     WHERE id_ent = v_id_entrega AND tipo = v_tipo_entrega;
 
     IF v_count = 0 THEN
-        DBMS_OUTPUT.PUT_LINE('Erro: ENTREGA N√O ENCONTRADA');
+        DBMS_OUTPUT.PUT_LINE('Erro: ENTREGA N√ÉO ENCONTRADA');
     ELSE
-    
         IF NOT verificar_entrega(v_id_entrega) THEN
-            DBMS_OUTPUT.PUT_LINE('Erro: ENTREGA J¡ EST¡ COM STATUS DE ATRASADA - N√O PODE CADASTRAR NOVAMENTE'); 
+            DBMS_OUTPUT.PUT_LINE('Erro: ENTREGA J√Å EST√Å COM STATUS DE ATRASADA - N√ÉO PODE CADASTRAR NOVAMENTE'); 
         ELSE
-            IF v_tipo_entrega = 'Entrega R·pida' THEN
+            IF v_tipo_entrega = 'Entrega R√°pida' THEN
                 UPDATE Entregas SET veiculo = 'Tipo A' WHERE id_ent = v_id_entrega;
-                DBMS_OUTPUT.PUT_LINE('VeÌculo atribuÌdo com sucesso.');
+                DBMS_OUTPUT.PUT_LINE('Ve√≠culo atribu√≠do com sucesso.');
             ELSE
                 UPDATE Entregas SET veiculo = 'Tipo B' WHERE id_ent = v_id_entrega;
-                DBMS_OUTPUT.PUT_LINE('VeÌculo atribuÌdo com sucesso.');
+                DBMS_OUTPUT.PUT_LINE('Ve√≠culo atribu√≠do com sucesso.');
             END IF;
         END IF;
-
     END IF;
-
     COMMIT;
+    
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Erro: ' || SQLERRM);
+END;
+
+CREATE OR REPLACE PROCEDURE verificar_status(v_id_entrega NUMBER)
+IS 
+    v_count NUMBER;
+    v_status VARCHAR(35);
+BEGIN
+    SELECT COUNT(*) INTO v_count
+    FROM Entregas WHERE id_ent = v_id_entrega;
+
+    IF v_count = 0 THEN
+        DBMS_OUTPUT.PUT_LINE('Erro: ENTREGA N√ÉO ENCONTRADA.');
+    ELSE
+        SELECT status INTO v_status
+        FROM Status_entregas WHERE id_ent = v_id_entrega;
+        
+        IF v_status = 'Entrega dentro do prazo' THEN
+            UPDATE Status_entregas SET status = 'Entrega Atrasada' WHERE id_ent = v_id_entrega;
+            DBMS_OUTPUT.PUT_LINE('ENTREGA ATUALIZADA!');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('ENTREGA COM STATUS J√Å COMO ATRASADA! VERIFICAR OCORR√äNCIAS'); 
+        END IF;
+    END IF;
+END;
+
+
+----> TRIGGERS
+
+CREATE OR REPLACE TRIGGER Historico_entregas
+AFTER INSERT OR UPDATE ON Status_entregas
+FOR EACH ROW
+BEGIN 
+    IF INSERTING THEN
+        INSERT INTO Historico_entregas (id_status, data_status, status, operacao) VALUES (:NEW.id_ent, TRUNC(SYSDATE), :new.status, 'ENTREGA INSERIDA');
+    END IF;
+    
+    IF UPDATING THEN
+        INSERT INTO Historico_entregas VALUES (:OLD.id_ent, TRUNC(SYSDATE), :new.status, 'STATUS DE ENTREGA ATUALIZADA');
+    END IF;
 END;
 
 
 
+-- EXECU√á√ïES DA PROCEDURE DE REGISTRAR ENTREGA
+EXEC registrar_entrega(1, 'Entrega R√°pida');
+EXEC registrar_entrega(1, 'Entrega Longa');
+EXEC registrar_entrega(2, 'Entrega Longa');
+EXEC registrar_entrega(3, 'Entrega R√°pido');
 
-EXEC registrar_entrega(1, 'Entrega R·pida');
-
-EXEC atribuir_veiculo_entrega(1, 'Entrega R·pida');
-
-
-
-
-
-
-
-
-
-
-
+-- EXECU√á√ïES DA PROCEDURE DE ATRIBUIR VE√çCULO
+EXEC atribuir_veiculo_entrega(1, 'Entrega R√°pida');
+EXEC atribuir_veiculo_entrega(2, 'Entrega Longa');

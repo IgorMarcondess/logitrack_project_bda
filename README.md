@@ -1,7 +1,8 @@
 # Projeto Banco de dados Empresa Logitrack (Ficticia)
 
-![status](https://img.shields.io/badge/status-em%20andamento-yellow)
-
+<p align="center">
+  <img src="https://img.shields.io/badge/status-em%20andamento-yellow" alt="status">
+</p>
 
 Projeto realizado para construção e estruturação do Banco de dados da Empresa fictícia LOGITRACK do ramo de logística
 

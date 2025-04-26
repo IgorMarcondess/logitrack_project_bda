@@ -1,4 +1,4 @@
-# Projeto Banco de dados Empresa Logitrack (Ficticia)
+# Projeto Banco de dados Empresa Logitrack (Fictícia)
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-em%20andamento-yellow" alt="status">
@@ -16,15 +16,15 @@ Clientes - Entregas - Motoristas - Veículos - Status de entrega
 **O que contém no projeto:**
 
 **Modelagem Conceitual (DER)**
-Entidades principais: Cliente, Entrega, Veículo, Motorista, Entrega_Motorista
 
-Relacionamentos com chaves primárias e estrangeiras bem definidos
+--> Entidades principais: Cliente, Entrega, Veículo, Motorista, Entrega_Motorista
+
+--> Relacionamentos com chaves primárias e estrangeiras bem definidos
 
 **Modelo Lógico e Físico (SQL)**
-Criação das tabelas no Oracle
-Tipagem adequada e integridade referencial
 
-Lógica de Negócio com PL/SQL
+--> Criação das tabelas no Oracle
+--> Tipagem adequada e integridade referencial
 
 **1 Package central para funcionalidades de entrega**
 
